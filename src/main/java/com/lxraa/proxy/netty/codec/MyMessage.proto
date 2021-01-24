@@ -1,0 +1,26 @@
+syntax = "proto3";
+option java_outer_classname = "MyMessagePOJO";
+option java_package = "com.lxraa.proxy.netty.codec";
+
+message MyMessage{
+  enum DataType{
+    StudentType = 0;
+    WorkerType = 1;
+  }
+  DataType dataType = 1;
+  oneof dataBody {
+    Student student = 2;
+    Worker worker = 3;
+  }
+}
+
+
+message Student{
+  int32 id = 1;
+  string name = 2;
+}
+message  Worker{
+  int32 id = 1;
+  string name = 2;
+  string tag = 3;
+}
