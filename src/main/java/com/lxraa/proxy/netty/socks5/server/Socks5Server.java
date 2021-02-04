@@ -35,7 +35,7 @@ public class Socks5Server {
                             pipeline.addLast(new Socks5InitialRequestDecoder());
                             pipeline.addLast(new Socks5InitialRequestHandler());
                             pipeline.addLast(new Socks5CommandRequestDecoder());
-                            pipeline.addLast(new Socks5CommandRequestHandler(bossGroup));
+                            pipeline.addLast(new Socks5CommandRequestHandler2(bossGroup));
 
                         }
                     });

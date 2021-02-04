@@ -1,9 +1,11 @@
 package com.lxraa.proxy.netty.tls;
 
 import com.sun.org.apache.bcel.internal.generic.FNEG;
+import io.netty.handler.ssl.SslHandler;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
@@ -72,6 +74,20 @@ public class SSLUtils {
             }
         }
         return CLIENT_CONTEXT;
+    }
+
+    public static SslHandler getServerSslHandler(){
+        String jksPath = "tls/serverStore.jks";
+        SSLEngine engine = SSLUtils.getServerContext(jksPath).createSSLEngine();
+        engine.setUseClientMode(false);
+        return new SslHandler(engine);
+    }
+
+    public static SslHandler getClientSslHandler(){
+        String jksPath = "tls/clientStore.jks";
+        SSLEngine engine = SSLUtils.getClientContext(jksPath).createSSLEngine();
+        engine.setUseClientMode(true);
+        return new SslHandler(engine);
     }
 }
 
