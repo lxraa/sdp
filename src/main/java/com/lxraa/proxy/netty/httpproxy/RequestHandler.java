@@ -89,7 +89,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                                 ChannelPipeline pipeline = globalCtx.pipeline();
                                 pipeline.addFirst(SSLUtils.getServerSslHandler());
                                 pipeline.remove("requestHandler");
-                                pipeline.addLast("requestForwardHandler",new RequestForwardHandler(future.getNow()));
+                                RequestForwardHandler handler = new RequestForwardHandler();
+                                handler.setObjChannel(future.getNow());
+                                pipeline.addLast("requestForwardHandler",handler);
 
                             }
                         });
