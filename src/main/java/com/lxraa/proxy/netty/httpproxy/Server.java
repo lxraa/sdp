@@ -32,6 +32,7 @@ public class Server {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast("httpCodec",new HttpServerCodec());
+                            pipeline.addLast(new HttpObjectAggregator(1024*30));
                             pipeline.addLast("requestHandler",new RequestHandler());
                         }
                     });
@@ -46,7 +47,7 @@ public class Server {
         }
     }
 
-    public static class RequestHandler extends SimpleChannelInboundHandler<HttpObject>{
+    public static class RequestHandler extends SimpleChannelInboundHandler<FullHttpRequest>{
         private ChannelHandlerContext ctx;
         private Bootstrap bootstrap = new Bootstrap();
 
@@ -63,7 +64,7 @@ public class Server {
         }
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+        protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
             if (msg instanceof HttpRequest) {
                 //转成 HttpRequest
                 HttpRequest req = (HttpRequest) msg;
@@ -102,6 +103,8 @@ public class Server {
                             //将客户端channel添加到转换数据的channel，（这个ForwardHandler是自己写的）
                             p.addLast(SSLUtils.getServerSslHandler());
                             // TODO
+//                            p.addLast(new HttpServerCodec());
+//                            p.addLast(new HttpObjectAggregator(1024*30));
                             p.addLast(new ForwardHandler(channelFuture.getNow()));
                         }
                     });
@@ -120,7 +123,10 @@ public class Server {
                             p.remove("httpCodec");
                             p.remove("requestHandler");
                             //添加handler
+//                            p.addLast(new HttpServerCodec());
+//                            p.addLast(new HttpObjectAggregator(1024*30));
                             p.addLast(new ForwardHandler(channelFuture.getNow()));
+//                            ctx.fireChannelRead(o);
                             channelFuture.get().writeAndFlush(o);
                         }
                     });
@@ -143,7 +149,9 @@ public class Server {
                             if(isSsl){
                                 ch.pipeline().addLast(SSLUtils.getClientSslHandler());
                             }
-                            ch.pipeline().addLast(new ForwardHandler(ctx.channel()));
+//                            ch.pipeline().addLast(new HttpClientCodec());
+//                            ch.pipeline().addLast(new HttpObjectAggregator(1024*30));
+                            ch.pipeline().addLast(new ResponseForwardHandler(ctx.channel()));
                         }
                     })
                     .connect()
@@ -168,7 +176,6 @@ public class Server {
 
         private Channel outChannel;
         // 标记转发的请求是request还是response
-        private String type;
         public ForwardHandler(Channel channel){
             this.outChannel = channel;
 
@@ -196,5 +203,34 @@ public class Server {
             outChannel.flush();
         }
     }
+    public static class ResponseForwardHandler extends ChannelInboundHandlerAdapter{
+        private Channel outChannel;
+        // 标记转发的请求是request还是response
+        public ResponseForwardHandler(Channel channel){
+            this.outChannel = channel;
 
+        }
+
+        private void soutByteBuf(Object buf){
+            if(buf instanceof ByteBuf){
+                ByteBuf b = (ByteBuf) buf;
+                int count = b.readableBytes();
+                byte[] buffer = new byte[count];
+                b.getBytes(b.readerIndex(),buffer,0,count);
+                System.out.println(new String(buffer, Charset.forName("utf-8")));
+            }
+
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            soutByteBuf(msg);
+            outChannel.write(msg);
+        }
+
+        @Override
+        public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+            outChannel.flush();
+        }
+    }
 }

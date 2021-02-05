@@ -59,6 +59,7 @@ public class SSLUtils {
             tmf = TrustManagerFactory.getInstance("SunX509");
             tmf.init(keyStore);
 
+
             CLIENT_CONTEXT = SSLContext.getInstance("TLS");
             CLIENT_CONTEXT.init(null,tmf.getTrustManagers(),null);
 
