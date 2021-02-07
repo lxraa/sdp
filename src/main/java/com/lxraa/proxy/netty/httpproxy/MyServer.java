@@ -11,11 +11,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MyServer {
-
+    @Value("${proxy.port}")
+    private Integer listenPort;
     public void start(){
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -35,7 +37,7 @@ public class MyServer {
                         }
                     });
 
-            ChannelFuture future = bootstrap.bind(1122).sync();
+            ChannelFuture future = bootstrap.bind(listenPort).sync();
             future.channel().closeFuture().sync();
         }catch (Exception e){
             e.printStackTrace();
@@ -48,7 +50,4 @@ public class MyServer {
 
 
 
-    public static void main(String[] args) {
-
-    }
 }
