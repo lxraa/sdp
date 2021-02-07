@@ -10,12 +10,23 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Component
+@Scope(value = "prototype")
 public class RequestHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext globalCtx;
     private UUID sessionId;
+    @Autowired
+    private RequestForwardHandler requestForwardHandler;
+    @Autowired
+    private ResponseForwardHandler responseForwardHandler;
+
     Promise<Channel> newConnection(FullHttpRequest request,Boolean isTls){
         Promise<Channel> promise = globalCtx.executor().newPromise();
         String host = request.headers().get("Host");
@@ -38,7 +49,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                             }
 
                             pipeline.addLast(new HttpClientCodec());
-                            pipeline.addLast(new ResponseForwardHandler(globalCtx.channel()));
+                            responseForwardHandler.setChannel(globalCtx.channel());
+                            pipeline.addLast(responseForwardHandler);
                         }
                     }).connect(host,port)
                     .addListener(new ChannelFutureListener() {
@@ -89,9 +101,9 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                                 ChannelPipeline pipeline = globalCtx.pipeline();
                                 pipeline.addFirst(SSLUtils.getServerSslHandler());
                                 pipeline.remove("requestHandler");
-                                RequestForwardHandler handler = new RequestForwardHandler();
-                                handler.setObjChannel(future.getNow());
-                                pipeline.addLast("requestForwardHandler",handler);
+                                // 这里其实不应该预先建立通道
+                                requestForwardHandler.setObjChannel(future.getNow());
+                                pipeline.addLast("requestForwardHandler",requestForwardHandler);
 
                             }
                         });

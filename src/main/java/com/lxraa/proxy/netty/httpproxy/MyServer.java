@@ -1,5 +1,6 @@
 package com.lxraa.proxy.netty.httpproxy;
 
+import com.lxraa.proxy.ProxyApplication;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -10,9 +11,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MyServer {
-    public static void main(String[] args) {
+
+    public void start(){
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
@@ -27,7 +31,7 @@ public class MyServer {
                             pipeline.addLast("httpCodec",new HttpServerCodec());
                             pipeline.addLast("httpAggregator",new HttpObjectAggregator(1024*50));
                             // 这个handler用来处理第一个请求包，重新构造 pipeline
-                            pipeline.addLast("requestHandler",new RequestHandler());
+                            pipeline.addLast("requestHandler", ProxyApplication.getBean(RequestHandler.class));
                         }
                     });
 
@@ -39,5 +43,12 @@ public class MyServer {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+
+    }
+
+
+
+    public static void main(String[] args) {
+
     }
 }
