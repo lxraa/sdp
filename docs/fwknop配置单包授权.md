@@ -81,3 +81,8 @@ FIREWALL_EXE                /usr/bin/firewall-cmd;
 查看服务状态：  
 `fwknopd --status`  
 (进行完这一步，就可以使用fwknop客户端发送单包授权了)
+
+## 四、这玩意有什么问题
+
+一大堆客户端使用同一个出口IP的时候如何做控制？（未测试）
+
