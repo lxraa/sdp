@@ -12,7 +12,6 @@ import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -26,6 +25,8 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
     private RequestForwardHandler requestForwardHandler;
     @Autowired
     private ResponseForwardHandler responseForwardHandler;
+    @Autowired
+    private SSLUtils sslUtils;
 
     Promise<Channel> newConnection(FullHttpRequest request,Boolean isTls){
         Promise<Channel> promise = globalCtx.executor().newPromise();
@@ -45,7 +46,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
                             if(isTls){
-                                pipeline.addLast(SSLUtils.getClientSslHandler());
+                                pipeline.addLast(sslUtils.getClientSslHandler());
                             }
 
                             pipeline.addLast(new HttpClientCodec());
@@ -99,7 +100,7 @@ public class RequestHandler extends ChannelInboundHandlerAdapter {
                             @Override
                             public void operationComplete(ChannelFuture future1) throws Exception {
                                 ChannelPipeline pipeline = globalCtx.pipeline();
-                                pipeline.addFirst(SSLUtils.getServerSslHandler());
+                                pipeline.addFirst(sslUtils.getServerSslHandler());
                                 pipeline.remove("requestHandler");
                                 // 这里其实不应该预先建立通道
                                 requestForwardHandler.setObjChannel(future.getNow());

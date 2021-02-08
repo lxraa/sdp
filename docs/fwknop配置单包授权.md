@@ -41,7 +41,7 @@ fwknop -n 192.168.21.128
 ./configure --prefix=/usr --sysconfdir=/etc && make
 `
 - 3、配置文件  
-fwknopd需要两个配置文件：access.conf和fwknopd.conf  
+fwknopd需要两个配置文件：/etc/fwknop/access.conf和fwknopd.conf  
 access.conf：配置了客户端的密钥，可以采用两种配置方式①对称加密②非对称加密。例：  
 ```
 #### fwknopd access.conf stanzas ###

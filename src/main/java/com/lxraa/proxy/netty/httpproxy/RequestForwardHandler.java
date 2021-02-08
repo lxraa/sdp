@@ -28,11 +28,13 @@ public class RequestForwardHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if(!(msg instanceof FullHttpRequest)){
+            System.out.println("非http请求，关闭channel");
             objChannel.close();
             ctx.close();
             return;
         }
 
+        System.out.println("开始认证");
         if(!auth.login((FullHttpRequest) msg)){
             objChannel.close();
             String resBody = "未登录";
@@ -46,6 +48,7 @@ public class RequestForwardHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
+        System.out.println("登陆成功，开始检查权限");
         if(!auth.auth((FullHttpRequest) msg)){
             objChannel.close();
             String resBody = "没有权限访问该资源";
@@ -59,7 +62,7 @@ public class RequestForwardHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-
+        System.out.println("权限检查通过");
         objChannel.write(msg);
     }
 

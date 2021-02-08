@@ -43,7 +43,7 @@ public class MainClient {
                             ChannelPipeline pipeline = ch.pipeline();
 
                             String jksPath = "tls/clientStore.jks";
-                            SSLEngine engine = SSLUtils.getClientContext(jksPath).createSSLEngine();
+                            SSLEngine engine = new SSLUtils().getClientContext(jksPath).createSSLEngine();
                             engine.setUseClientMode(true);
                             pipeline.addLast(new SslHandler(engine)).get(SslHandler.class).handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
                                 @Override

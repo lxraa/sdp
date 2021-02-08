@@ -28,7 +28,7 @@ public class Client {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
                             String jksPath = "tls/clientStore.jks";
-                            SSLEngine engine = SSLUtils.getClientContext(jksPath).createSSLEngine();
+                            SSLEngine engine = new SSLUtils().getClientContext(jksPath).createSSLEngine();
                             engine.setUseClientMode(true);
                             pipeline.addLast("ssl",new SslHandler(engine));
                             // On top of the SSL handler, add the text line codec.

@@ -30,7 +30,7 @@ public class Server {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
                             String jksPath = "tls/serverStore.jks";
-                            SSLEngine engine = SSLUtils.getServerContext(jksPath).createSSLEngine();
+                            SSLEngine engine = new SSLUtils().getServerContext(jksPath).createSSLEngine();
                             engine.setUseClientMode(false);
                             pipeline.addLast("ssl",new SslHandler(engine));
                             pipeline.addLast("framer", new LineBasedFrameDecoder(1024, false, false));
