@@ -5,7 +5,6 @@ import com.lxraa.proxy.domain.entity.audit.AuditObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,7 @@ public class ResponseForwardHandler extends ChannelInboundHandlerAdapter {
         }
         System.out.println("添加response审计信息");
         AuditObject obj = new AuditObject();
-        obj.setObj(msg);
+        obj.setObj(((FullHttpResponse) msg).copy());
         obj.setSessionId(sessionId);
 
         AuditThread.add(obj);

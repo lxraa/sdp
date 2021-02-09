@@ -4,11 +4,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import com.lxraa.proxy.domain.entity.audit.AuditObject;
 import com.lxraa.proxy.domain.entity.audit.SessionInfo;
+import com.lxraa.proxy.domain.entity.audit.UserInfo;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -18,6 +18,9 @@ public class AuditThread implements Runnable {
     public static ConcurrentLinkedQueue<AuditObject> queue;
     // 保存sessionid和用户的对应关系，需要定时清理
     public static Map<UUID, SessionInfo> sessionInfos;
+    // 这里用es更好，此处仅做demo
+    public static Map<String, UserInfo> userInfos;
+
     private ThreadPoolExecutor executor;
     public static final int CORE_POOL_SIZE = 5;
     public static final int MAX_POOL_SIZE = 10;
@@ -26,6 +29,7 @@ public class AuditThread implements Runnable {
     static {
         queue = new ConcurrentLinkedQueue<>();
         sessionInfos = new ConcurrentHashMap<>();
+        userInfos = new ConcurrentHashMap<>();
     }
 
     public static void closeSession(UUID sessionId){
@@ -101,6 +105,8 @@ public class AuditThread implements Runnable {
                     return;
                 }
                 auditor.run();
+
+
             });
         }
 

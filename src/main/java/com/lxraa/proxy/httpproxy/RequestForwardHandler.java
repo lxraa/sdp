@@ -2,7 +2,6 @@ package com.lxraa.proxy.httpproxy;
 
 import com.lxraa.proxy.audit.AuditThread;
 import com.lxraa.proxy.domain.entity.audit.AuditObject;
-import com.lxraa.proxy.domain.entity.audit.SessionInfo;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -68,9 +67,9 @@ public class RequestForwardHandler extends ChannelInboundHandlerAdapter {
 
         System.out.println("权限检查通过");
         AuditObject obj = new AuditObject();
-        obj.setObj(msg);
+        obj.setObj(((FullHttpRequest) msg).copy());
         obj.setSessionId(sessionId);
-
+        System.out.println("添加request审计信息");
         AuditThread.createSession(sessionId,request.headers().get("Username"));
         AuditThread.add(obj);
 

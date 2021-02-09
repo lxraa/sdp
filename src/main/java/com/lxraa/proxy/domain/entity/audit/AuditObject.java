@@ -1,5 +1,6 @@
 package com.lxraa.proxy.domain.entity.audit;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import lombok.Data;
 
 import java.util.UUID;
@@ -7,4 +8,6 @@ import java.util.UUID;
 public class AuditObject {
     private Object obj;
     private UUID sessionId;
+    private HttpHeaders headers;
+
 }
