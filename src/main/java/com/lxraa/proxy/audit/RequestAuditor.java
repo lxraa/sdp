@@ -3,6 +3,7 @@ package com.lxraa.proxy.audit;
 import com.lxraa.proxy.domain.entity.audit.AuditObject;
 import com.lxraa.proxy.domain.entity.audit.SessionInfo;
 import com.lxraa.proxy.domain.entity.audit.UserInfo;
+import com.lxraa.proxy.utils.ToolUtils;
 import io.netty.handler.codec.http.FullHttpRequest;
 
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class RequestAuditor implements Auditor{
      *
      */
     private void statistic(){
+        ToolUtils.printLine();
         String username = sessionInfo.getUsername();
         if(null == AuditThread.userInfos.get(username)){
             UserInfo userInfo = new UserInfo();
