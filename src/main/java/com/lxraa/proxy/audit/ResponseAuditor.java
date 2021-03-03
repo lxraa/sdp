@@ -44,7 +44,7 @@ public class ResponseAuditor implements Auditor{
      */
 
     public void sensitiveDataDownload(){
-        ToolUtils.printLine();
+        ToolUtils.printLine("response 策略1");
         String body = getBody();
         List<String> mobiles = RegUtils.matchAll(body,mobile);
         List<String> mails = RegUtils.matchAll(body,mail);

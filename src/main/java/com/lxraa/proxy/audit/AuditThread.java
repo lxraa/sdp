@@ -32,6 +32,10 @@ public class AuditThread implements Runnable {
         userInfos = new ConcurrentHashMap<>();
     }
 
+    /**
+     * TODO session生命周期管理有BUG
+     * @param sessionId
+     */
     public static void closeSession(UUID sessionId){
         sessionInfos.get(sessionId).setIsClosed(true);
     }
