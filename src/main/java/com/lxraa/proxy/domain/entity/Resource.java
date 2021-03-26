@@ -11,4 +11,6 @@ public class Resource {
     @TableId(value="id",type = IdType.AUTO)
     private Long id;
     private String path;
+    @TableId(value="risk_level")
+    private String riskLevel;
 }
