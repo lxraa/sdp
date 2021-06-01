@@ -1,18 +1,35 @@
 package com.lxraa.proxy.audit;
 
+import cn.hutool.extra.mail.MailUtil;
+import com.lxraa.proxy.domain.entity.Event;
 import com.lxraa.proxy.domain.entity.audit.AuditObject;
 import com.lxraa.proxy.domain.entity.audit.SessionInfo;
+import com.lxraa.proxy.mapper.EventMapper;
 import com.lxraa.proxy.utils.RegUtils;
 import com.lxraa.proxy.utils.ToolUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+@Scope("prototype")
+@Component
 public class ResponseAuditor implements Auditor{
+    @Autowired
+    private EventMapper eventMapper;
+    @Value("${message.mail}")
+    private String objMail;
+    @Autowired
+    private ToolUtils toolUtils;
+
     private static int SENSITIVE_DATA_THRESHOLD = 100;
     private static Pattern mobile = Pattern.compile("(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\\d{8}",Pattern.MULTILINE);
     private static Pattern mail = Pattern.compile("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*");
@@ -21,10 +38,8 @@ public class ResponseAuditor implements Auditor{
     private FullHttpResponse obj;
     private UUID sessionId;
     private SessionInfo sessionInfo;
-    public ResponseAuditor(AuditObject obj){
-        this.obj = (FullHttpResponse) obj.getObj();
-        this.sessionId = obj.getSessionId();
-        this.sessionInfo = AuditThread.sessionInfos.get(sessionId);
+    public ResponseAuditor(){
+
     }
     protected void finalize(){
         // 释放ByteBuf
@@ -52,6 +67,15 @@ public class ResponseAuditor implements Auditor{
         List<String> idNumber18s = RegUtils.matchAll(body,idNumber18);
         int count = mobiles.size() + mails.size() + idNumber15s.size() + idNumber18s.size();
         if(count > SENSITIVE_DATA_THRESHOLD){
+            String content = "警告：用户%s大量下载敏感数据。敏感数据%s条，其中手机号%s条，邮箱%s条，身份证号%s条";
+            Event event = new Event();
+            event.setTime(new Date(System.currentTimeMillis()).toString());
+            event.setUser(sessionInfo.getUsername());
+            event.setType("response");
+            event.setContent(String.format("%s拉取敏感数据%s条，其中手机号%s条，邮箱%s条，身份证号%s条",sessionInfo.getUsername(),count,mobiles.size(),mails.size(),idNumber15s.size()+idNumber18s.size()));
+            eventMapper.insert(event);
+            toolUtils.sendMail(objMail,"异常行为告警",event.getContent());
+            System.out.println("邮件发送成功");
             System.out.println(String.format("警告，用户%s拉取敏感数据%s条 其中手机号%s条，邮箱%s条，身份证号%s条",sessionInfo.getUsername(),count,mobiles.size(),mails.size(),idNumber15s.size()+idNumber18s.size()));
         }
 
@@ -60,5 +84,12 @@ public class ResponseAuditor implements Auditor{
     @Override
     public void run() {
         sensitiveDataDownload();
+    }
+
+    @Override
+    public void setObject(AuditObject obj) {
+        this.obj = (FullHttpResponse) obj.getObj();
+        this.sessionId = obj.getSessionId();
+        this.sessionInfo = AuditThread.sessionInfos.get(sessionId);
     }
 }

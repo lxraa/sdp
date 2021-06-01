@@ -2,6 +2,7 @@ package com.lxraa.proxy.audit;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import com.lxraa.proxy.ProxyApplication;
 import com.lxraa.proxy.domain.entity.audit.AuditObject;
 import com.lxraa.proxy.domain.entity.audit.SessionInfo;
 import com.lxraa.proxy.domain.entity.audit.UserInfo;
@@ -63,13 +64,15 @@ public class AuditThread implements Runnable {
         AuditThread.sessionInfos.put(sessionId,info);
     }
 
-    public static Auditor createAuditor(AuditObject obj){
+    public Auditor createAuditor(AuditObject obj){
         Auditor ret = null;
         if(obj.getObj() instanceof FullHttpRequest){
-            ret = new RequestAuditor(obj);
+            ret = ProxyApplication.getBean(RequestAuditor.class);
+            ret.setObject(obj);
         }
         if(obj.getObj() instanceof FullHttpResponse){
-            ret = new ResponseAuditor(obj);
+            ret = ProxyApplication.getBean(ResponseAuditor.class);
+            ret.setObject(obj);
         }
         AuditThread.consumeAuditObject(obj.getSessionId());
         return ret;
@@ -109,7 +112,6 @@ public class AuditThread implements Runnable {
                     return;
                 }
                 auditor.run();
-
 
             });
         }
